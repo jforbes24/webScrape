@@ -4,6 +4,7 @@ import lxml
 import random
 import numpy as np
 import pandas as pd
+import re
 
 # assign user-agent
 user_agent_list = [
@@ -39,7 +40,6 @@ for x in range(1,4):
 print(result.status_code)
 print(len(productlinks))
 
-# testlink = 'https://www.diy.com/departments/dartmoor-oak-effect-laminate-flooring-1-48m-pack/5013599012878_BQ.prd'
 
 productData = []
 
@@ -60,7 +60,9 @@ for link in productlinks:
             row = i.text
     # get rating
     try:
-        rating = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
+        starText = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
+        starRegex = re.compile('F')
+        rating = len(starRegex.findall(starText))
     except:
         rating = 'no rating'
     # get reviews
@@ -93,4 +95,4 @@ pd.set_option('display.max_columns', 100)
 # save to excel
 df.to_excel('bs4Floor.xlsx', index=False, header=True)
 data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
-print(df.head)
+print(df.head(5))
