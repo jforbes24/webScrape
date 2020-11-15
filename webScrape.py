@@ -28,7 +28,7 @@ for i in range(1,6):
     headers = {'User-Agent' : user_agent}
 
 # make the request
-for x in range(1,4):
+for x in range(1,2):
     result = requests.get(f"https://www.diy.com/departments/flooring-tiling/flooring-underlay/laminate-flooring/DIY566433.cat?page={x}", headers=headers)    
     soup = bs4.BeautifulSoup(result.content, 'lxml')
     productlist = soup.find_all('li', class_='b9bdc658')
@@ -96,3 +96,7 @@ pd.set_option('display.max_columns', 100)
 df.to_excel('bs4Floor.xlsx', index=False, header=True)
 data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
 print(df.head(5))
+
+## TO DO
+
+# loop category pages
