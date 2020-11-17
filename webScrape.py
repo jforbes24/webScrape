@@ -5,6 +5,7 @@ import random
 import numpy as np
 import pandas as pd
 import re
+import time
 
 # assign user-agent
 user_agent_list = [
@@ -17,7 +18,7 @@ user_agent_list = [
     ]
 
 baseurl = 'https://www.diy.com/'
-url = "https://www.diy.com/departments/lighting/indoor-lights/floor-lamps/DIY579453.cat?page={x}"
+
 
 productlinks = []
 
@@ -28,75 +29,95 @@ for i in range(1,6):
     headers = {'User-Agent' : user_agent}
 
 # make the request
-for x in range(1,2):
-    result = requests.get(f"https://www.diy.com/departments/flooring-tiling/flooring-underlay/laminate-flooring/DIY566433.cat?page={x}", headers=headers)    
+def get_page(page):
+    url = "https://www.diy.com/departments/flooring-tiling/flooring-underlay/laminate-flooring/DIY566433.cat?page=" + str(page)   
+    result = requests.get(url, headers=headers)    
     soup = bs4.BeautifulSoup(result.content, 'lxml')
     productlist = soup.find_all('li', class_='b9bdc658')
     for item in productlist:
         for link in item.find_all('a', href=True):
-            # print(link['href'])
             productlinks.append(baseurl + link['href'])
             
-print(result.status_code)
-print(len(productlinks))
+    print(result.status_code)
+    print(len(productlinks))
 
 
-productData = []
+    productData = []
 
-for link in productlinks:
-    r = requests.get(link, headers=headers)
-    soup = bs4.BeautifulSoup(r.content, 'lxml')
-    # get name
-    name = soup.find('h1', class_='ccb9d67a _17d3fa36 _1c13b5e2 _58b3d2d9 _514c3e90 _75d33510 _266816c0 _6ba14bc3 fcf8ebfc _78852320 bae4848b cc6bbaee _23ee746f').text.strip()
-    for tr in soup.find_all('tr')[2:]:
-        td = tr.find_all('th')
-    # get sku
-    table = soup.find('table')
-    tableRows = table.find_all('tr')
+    for link in productlinks:
+        r = requests.get(link, headers=headers)
+        soup = bs4.BeautifulSoup(r.content, 'lxml')
+        # get name
+        name = soup.find('h1', class_='ccb9d67a _17d3fa36 _1c13b5e2 _58b3d2d9 _514c3e90 _75d33510 _266816c0 _6ba14bc3 fcf8ebfc _78852320 bae4848b cc6bbaee _23ee746f').text.strip()
+        for tr in soup.find_all('tr')[2:]:
+            td = tr.find_all('th')
+        # get sku
+        table = soup.find('table')
+        tableRows = table.find_all('tr')
 
-    for tr in tableRows:
-        td = tr.find_all('td')    
-        for i in td: 
-            row = i.text
-    # get rating
-    try:
-        starText = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
-        starRegex = re.compile('F')
-        rating = len(starRegex.findall(starText))
-    except:
-        rating = 'no rating'
-    # get reviews
-    try:
-        reviews = soup.find('span', class_='ccb9d67a _17d3fa36 _50344329 b1bfb616 cc6bbaee').text.strip()
-    except:
-        reviews = 'no reviews'
-    # get price
-    price = soup.find('div', class_='b25ad5d5 _4e80f7be _23ee746f _7b343263 _21dc035c').text.strip()
-    # get unit price
-    unitPrice = soup.find('div', class_='b00398fe b1bfb616 _8da52348 b1bfb616').text
-    
-    floor = {
-        'sku': row,
-        'name': name,
-        'rating': rating,
-        'reviews': reviews,
-        'price': price,
-        'unitPrice': unitPrice,
-        'link': link
-        }
+        for tr in tableRows:
+            td = tr.find_all('td')    
+            for i in td: 
+                row = i.text
+        # get rating
+        try:
+            starText = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
+            starRegex = re.compile('F')
+            rating = len(starRegex.findall(starText))
+        except:
+            rating = 'no rating'
+        # get reviews
+        try:
+            reviews = soup.find('span', class_='ccb9d67a _17d3fa36 _50344329 b1bfb616 cc6bbaee').text.strip()
+        except:
+            reviews = 'no reviews'
+        # get price
+        price = soup.find('div', class_='b25ad5d5 _4e80f7be _23ee746f _7b343263 _21dc035c').text.strip()
+        # get unit price
+        unitPrice = soup.find('div', class_='b00398fe b1bfb616 _8da52348 b1bfb616').text
         
-    productData.append(floor)
+        floor = {
+            'sku': row,
+            'name': name,
+            'rating': rating,
+            'reviews': reviews,
+            'price': price,
+            'unitPrice': unitPrice,
+            'link': link
+            }
+        if floor in productData:
+            break
+        else:
+            productData.append(floor)
 
-print(len(productData))
+    print(len(productData))
+    
+    # create dataframe
+    df = pd.DataFrame(productData)
+    pd.set_option('display.max_columns', 100)
 
-df = pd.DataFrame(productData)
-pd.set_option('display.max_columns', 100)
+    # save to excel
+    df.to_excel('bs4Floor.xlsx', index=False, header=True)
+    data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
+    print(df)
 
-# save to excel
-df.to_excel('bs4Floor.xlsx', index=False, header=True)
-data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
-print(df.head(5))
+page = 0
+
+while True:
+    try:
+        page += 1
+        get_page(page)
+    except Exception as ex:
+        print(ex)
+        print('probably last page:', page)
+        break # exit 'while' loop
+
+        time.sleep(0.5)
+    
+# pagination
+# get_page(url, 3)
 
 ## TO DO
+
 
 # loop category pages
