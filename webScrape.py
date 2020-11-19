@@ -75,7 +75,12 @@ def get_page(page):
         price = soup.find('div', class_='b25ad5d5 _4e80f7be _23ee746f _7b343263 _21dc035c').text.strip()
         # get unit price
         unitPrice = soup.find('div', class_='b00398fe b1bfb616 _8da52348 b1bfb616').text
-        
+        #get customer review
+        # try:
+            # for cr in customer_review = soup.find('li', class_='bv-content-item bv-content-top-review bv-content-review bv-content-loaded'):
+        # except:
+            # customer_review = 'no review'
+            
         floor = {
             'sku': row,
             'name': name,
@@ -84,6 +89,7 @@ def get_page(page):
             'price': price,
             'unitPrice': unitPrice,
             'link': link
+            #'customer_review': customer_review
             }
         if floor in productData:
             break
@@ -101,12 +107,15 @@ def get_page(page):
     data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
     print(df)
 
+
+# pagination
 page = 0
 
 while True:
     try:
         page += 1
         get_page(page)
+    
     except Exception as ex:
         print(ex)
         print('probably last page:', page)
@@ -114,8 +123,7 @@ while True:
 
         time.sleep(0.5)
     
-# pagination
-# get_page(url, 3)
+
 
 ## TO DO
 
