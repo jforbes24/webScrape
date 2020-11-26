@@ -17,9 +17,9 @@ user_agent_list = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36',
     ]
 
-baseurl = 'https://www.diy.com/'
-
-categorylinks = []
+baseurl = 'https://www.diy.com'
+subCatLinks = []
+brickLinks = []
 productlinks = []
 
 # pick a random user agent
@@ -28,18 +28,50 @@ for i in range(1,6):
     # set the headers
     headers = {'User-Agent' : user_agent}
 
-# get category menu of range
-for i in range(1):
+# get sub-category
+for subCat in range(1):
     url = "https://www.diy.com/departments/flooring-tiling/DIY764939.cat"
     result = requests.get(url, headers=headers)    
     soup = bs4.BeautifulSoup(result.content, 'lxml')
-    menu = soup.find('ul', class_='js-menu-children is-expanded')
-    for cat in menu.find_all('a', href=True):
-            categorylinks.append(baseurl + cat['href'])
-print(categorylinks)
+    subCatMenu = soup.find('ul', class_='js-menu-children is-expanded')
+
+    time.sleep(1.5)
+
+    for subCat in subCatMenu.find_all('a', href=True):
+        subCatLinks.append(baseurl + subCat['href'])
+        time.sleep(1.5)
+        
+print(result.status_code)
+print(subCatLinks)
+
+# get brick category
+try:        
+    for brick in subCatLinks:
+        r = requests.get(brick, headers=headers)
+        broth = bs4.BeautifulSoup(r.content, 'lxml')
+        brickCatMenu = broth.find('ul', class_='js-menu-children is-expanded')
+        for brick in brickCatMenu.find_all('a', href=True):
+            brickLinks.append(baseurl + brick['href'])
+            time.sleep(0.5)
+except:
+    pass
+print(result.status_code)
+print(brickLinks)
+
+"""
+
+# get next page of products
+# nextP = 'https://www.diy.com/departments/flooring-tiling/flooring-underlay/DIY843065.cat'
+for nextP in subCatlinks:
+    result = requests.get(nextP, headers=headers)
+    soup = bs4.BeautifulSoup(result.content, 'lxml')
+    next_page = soup.find('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f')
+    print(baseurl + next_page['href'])
+
+"""
 
 # get products
-for prods in categorylinks:
+for prods in brickLinks:
     result = requests.get(prods, headers=headers)    
     soup = bs4.BeautifulSoup(result.content, 'lxml')
     productlist = soup.find_all('li', class_='b9bdc658')
@@ -49,13 +81,15 @@ for prods in categorylinks:
                 break
             else:
                 productlinks.append(baseurl + link['href'])
-            
-    print(result.status_code)
-    print(len(productlinks))
+                time.sleep(0.5)
+print(result.status_code)
+print(len(productlinks))
 
+
+# get product attributes
+try:
     productData = []
 
-    # get product attributes
     for link in productlinks:
         r = requests.get(link, headers=headers)
         soup = bs4.BeautifulSoup(r.content, 'lxml')
@@ -110,7 +144,8 @@ for prods in categorylinks:
             break
         else:
             productData.append(sku)
-
+            time.sleep(0.5)
+            
     print(len(productData))
     
     # create dataframe
@@ -121,11 +156,10 @@ for prods in categorylinks:
     df.to_excel('bs4Floor.xlsx', index=False, header=True)
     data = pd.read_excel('/Users/jforbes84/PycharmProjects/bs4Floor.xlsx')
     print(df)
-
-
-# pagination
-
+except:
+    pass
 
 ## TO DO
 
-# loop category pages
+# pagination
+
