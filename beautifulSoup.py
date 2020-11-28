@@ -7,6 +7,7 @@ import pandas as pd
 import re
 import time
 
+
 # assign user-agent
 user_agent_list = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36',
@@ -22,11 +23,13 @@ subCatLinks = []
 brickLinks = []
 productlinks = []
 
+
 # pick a random user agent
 for i in range(1,6):
     user_agent = random.choice(user_agent_list)
     # set the headers
     headers = {'User-Agent' : user_agent}
+
 
 # get sub-category
 for subCat in range(1):
@@ -40,9 +43,9 @@ for subCat in range(1):
     for subCat in subCatMenu.find_all('a', href=True):
         subCatLinks.append(baseurl + subCat['href'])
         time.sleep(1.5)
-        
-print(result.status_code)
-print(subCatLinks)
+# print(result.status_code)
+# print(subCatLinks)
+
 
 # get brick category
 try:        
@@ -52,24 +55,36 @@ try:
         brickCatMenu = broth.find('ul', class_='js-menu-children is-expanded')
         for brick in brickCatMenu.find_all('a', href=True):
             brickLinks.append(baseurl + brick['href'])
-            time.sleep(0.5)
-except:
-    pass
-print(result.status_code)
-print(brickLinks)
+            time.sleep(1.5)
+            # print(baseurl + brick['href'])
+except Exception as ex:
+    print('Brick looping complete: ', ex)
+
+
+# get brick category next page
+try:
+    for next_page in brickLinks:
+        result = requests.get(next_page, headers=headers)
+        stew = bs4.BeautifulSoup(result.content, 'lxml')
+        try:
+            turnPage = stew.find('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f')
+            if baseurl + turnPage['href'] not in brickLinks:
+                brickLinks.append(baseurl + turnPage['href'])
+                print(baseurl + turnPage['href'])
+                time.sleep(1.5)
+            else:
+                pass
+        except Exception as ex:
+            print('no next page: ', ex)
+            
+except Exception as ex:
+    print('Error: ', ex)
+    
+print(len(brickLinks))
+
+
 
 """
-
-# get next page of products
-# nextP = 'https://www.diy.com/departments/flooring-tiling/flooring-underlay/DIY843065.cat'
-for nextP in subCatlinks:
-    result = requests.get(nextP, headers=headers)
-    soup = bs4.BeautifulSoup(result.content, 'lxml')
-    next_page = soup.find('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f')
-    print(baseurl + next_page['href'])
-
-"""
-
 # get products
 for prods in brickLinks:
     result = requests.get(prods, headers=headers)    
@@ -81,9 +96,9 @@ for prods in brickLinks:
                 break
             else:
                 productlinks.append(baseurl + link['href'])
-                time.sleep(0.5)
+                time.sleep(1.5)
 print(result.status_code)
-print(len(productlinks))
+print('product links: ' + str(len(productlinks)))
 
 
 # get product attributes
@@ -160,6 +175,10 @@ except:
     pass
 
 ## TO DO
+# create dataframe
+df1 = pd.DataFrame(productlinks)
+pd.set_option('display.max_columns', 100)
 
-# pagination
-
+# save to excel
+df1.to_excel('bs4FloorLinks.xlsx', index=False, header=True)
+"""
