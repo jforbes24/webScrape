@@ -22,7 +22,7 @@ baseurl = 'https://www.diy.com'
 subCatLinks = []
 brickLinks = []
 productlinks = []
-
+nestedLinks = []
 
 # pick a random user agent
 for i in range(1,6):
@@ -67,16 +67,42 @@ try:
         result = requests.get(next_page, headers=headers)
         stew = bs4.BeautifulSoup(result.content, 'lxml')
         try:
-            turnPage = stew.find('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f')
+            turnPage = stew.find('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f') # next page url
             if baseurl + turnPage['href'] not in brickLinks:
                 brickLinks.append(baseurl + turnPage['href'])
-                print(baseurl + turnPage['href'])
+                pageTwo = baseurl + turnPage['href']
+                nestedLinks.append(pageTwo)
+                print('nestedLinks: ' + pageTwo)
+
+                # get nested pages
+                try:
+                    for nestedPage in nestedLinks:
+                        r = requests.get(nestedPage, headers=headers)
+                        brew = bs4.BeautifulSoup(r.content, 'lxml')
+                        try:
+                            for otherPages in brew.find_all('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f'): # nested page url
+                                if otherPages.find('a') == None:
+                                    continue
+                                else:
+                                    brickLinks.append(otherPages.find('a'))
+                                    print(otherPages.find('a'))
+                                    break
+                            if baseurl + otherPages['href'] not in brickLinks:
+                                brickLinks.append(baseurl + otherPages['href'])
+                                print('other pages: ' + baseurl + otherPages['href'])
+                            else:
+                                pass
+                        except Exception as ex:
+                            print('no other pages: ', ex)
+                except Exception as ex:
+                    print('no nested page: ', ex)
                 time.sleep(1.5)
+
+                
             else:
                 pass
         except Exception as ex:
-            print('no next page: ', ex)
-            
+            print('no next page: ', ex)  
 except Exception as ex:
     print('Error: ', ex)
     
@@ -84,7 +110,6 @@ print(len(brickLinks))
 
 
 
-"""
 # get products
 for prods in brickLinks:
     result = requests.get(prods, headers=headers)    
@@ -137,29 +162,29 @@ try:
         # get unit price
         unitPrice = soup.find('div', class_='b00398fe b1bfb616 _8da52348 b1bfb616').text
         # get customer review
+        """
         try:
-            container = soup.find_all('li', class_='bv-content-item bv-content-top-review bv-content-review bv-content-loaded')
+        container = soup.find_all('li', class_='bv-content-item bv-content-top-review bv-content-review bv-content-loaded')
             for cr in container:
                 for review in cr.findAll('div', class_='bv-content-summary-body-text'):
                     cusR = review.text
         except:
             container = 'no review'
-            
+        """           
         sku = {
+            
             'sku': row,
             'name': name,
             'rating': rating,
             'reviews': reviews,
             'price': price,
             'unitPrice': unitPrice,
-            'link': link,
-            'customer_review': container
+            'link': link
+            # 'customer_review': container
             }
-        if sku in productData:
-            break
-        else:
-            productData.append(sku)
-            time.sleep(0.5)
+        
+        productData.append(sku)
+        time.sleep(0.5)
             
     print(len(productData))
     
@@ -181,4 +206,4 @@ pd.set_option('display.max_columns', 100)
 
 # save to excel
 df1.to_excel('bs4FloorLinks.xlsx', index=False, header=True)
-"""
+
