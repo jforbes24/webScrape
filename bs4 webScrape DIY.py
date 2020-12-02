@@ -128,12 +128,23 @@ try:
             for i in td: 
                 row = i.text
         # get category
-        breadCrumb = soup.find('div', class_='_3f9519f5 _042bbf7f acaa5c43')
-        category = breadCrumb.find_all('p')[1].text
-        # get subcat
-        subCat = breadCrumb.find_all('p')[2].text
-        # get brick category
-        brickCat = breadCrumb.find_all('p')[3].text
+        try:
+            breadCrumb1 = soup.find('div', class_='_3f9519f5 _042bbf7f acaa5c43')
+            category = breadCrumb1.find_all('p')[1].text
+        except:
+            category = 'na'
+            # get subcat
+        try:
+            breadCrumb2 = soup.find('div', class_='_3f9519f5 _042bbf7f acaa5c43')
+            subCat = breadCrumb2.find_all('p')[2].text
+        except:
+            subCat = 'na'
+            # get brick category
+        try:
+            breadCrumb3 = soup.find('div', class_='_3f9519f5 _042bbf7f acaa5c43')
+            brickCat = breadCrumb3.find_all('p')[3].text
+        except:
+            brickCat = 'na'
         # get rating
         try:
             starText = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
