@@ -38,11 +38,11 @@ for subCat in range(1):
     soup = bs4.BeautifulSoup(result.content, 'lxml')
     subCatMenu = soup.find('ul', class_='js-menu-children is-expanded')
 
-    time.sleep(1.5)
+    time.sleep(0.5)
 
     for subCat in subCatMenu.find_all('a', href=True):
         subCatLinks.append(baseurl + subCat['href'])
-        time.sleep(1.5)
+        time.sleep(1)
 # print(result.status_code)
 # print(subCatLinks)
 
@@ -55,7 +55,7 @@ try:
         brickCatMenu = broth.find('ul', class_='js-menu-children is-expanded')
         for brick in brickCatMenu.find_all('a', href=True):
             brickLinks.append(baseurl + brick['href'])
-            time.sleep(1.5)
+            time.sleep(1)
             # print(baseurl + brick['href'])
 except Exception as ex:
     print('Brick looping complete: ', ex)
@@ -67,7 +67,7 @@ try:
         result = requests.get(next_page, headers=headers)
         stew = bs4.BeautifulSoup(result.content, 'lxml')
 
-        # get 2nd page link
+        # get nested page links
         try:
             for urlLink in stew.find_all('a', class_='_6317a47c _6073bbf6 b9523d7b b48f4ced _38e857b5 eec494cf b7d7b84f'): # next page url
                 if urlLink.find('a') == None:
@@ -103,7 +103,7 @@ for prods in brickLinks:
                 break
             else:
                 productlinks.append(baseurl + link['href'])
-                time.sleep(1.5)
+                time.sleep(1)
 print(result.status_code)
 print('product links: ' + str(len(productlinks)))
 
@@ -127,6 +127,13 @@ try:
             td = tr.find_all('td')    
             for i in td: 
                 row = i.text
+        # get category
+        breadCrumb = soup.find('div', class_='_3f9519f5 _042bbf7f acaa5c43')
+        category = breadCrumb.find_all('p')[1].text
+        # get subcat
+        subCat = breadCrumb.find_all('p')[2].text
+        # get brick category
+        brickCat = breadCrumb.find_all('p')[3].text
         # get rating
         try:
             starText = soup.find('div', class_='_45e852d0 _6418d197 _2263bdd0').text.strip()
@@ -143,6 +150,11 @@ try:
         price = soup.find('div', class_='b25ad5d5 _4e80f7be _23ee746f _7b343263 _21dc035c').text.strip()
         # get unit price
         unitPrice = soup.find('div', class_='b00398fe b1bfb616 _8da52348 b1bfb616').text
+        # get clearance
+        try:
+            clearance = soup.find('p', class_='ccb9d67a _17d3fa36 _4fd271c8 _17d3fa36 _3b22edf5 _23ee746f').text
+        except:
+            clearance = 'active'
         # get customer review
         """
         try:
@@ -157,16 +169,20 @@ try:
             
             'sku': row,
             'name': name,
+            'category': category,
+            'subCat': subCat,
+            'brickCat': brickCat,
             'rating': rating,
             'reviews': reviews,
             'price': price,
             'unitPrice': unitPrice,
+            'clearance': clearance,
             'link': link
             # 'customer_review': container
             }
         
         productData.append(sku)
-        time.sleep(0.5)
+        time.sleep(1)
             
     print(len(productData))
     
