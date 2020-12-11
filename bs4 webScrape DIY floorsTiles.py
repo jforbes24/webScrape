@@ -197,8 +197,10 @@ try:
             'link': link
             # 'customer_review': container
             }
-        
-        productData.append(sku)
+        if sku in productData:
+            break
+        else:
+            productData.append(sku)
         time.sleep(1)
             
     print(len(productData))
