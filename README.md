@@ -1,4 +1,4 @@
-# Web Scrape
+# Web Scrape (with Beautiful Soup)
 
 Navigate from a category page within DIY.com through all sub-categories, then pull eCommerce product page details into a dataframe and save to an Excel file
 
