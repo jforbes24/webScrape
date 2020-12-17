@@ -215,12 +215,4 @@ try:
     print(df)
 except Exception as ex:
     print('Error in product data: ', ex)
-"""
-## TO DO
-# create dataframe
-df1 = pd.DataFrame(productlinks)
-pd.set_option('display.max_columns', 100)
 
-# save to excel
-df1.to_excel('bs4FloorLinks.xlsx', index=False, header=True)
-"""
