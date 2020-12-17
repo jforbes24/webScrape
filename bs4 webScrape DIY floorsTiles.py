@@ -225,5 +225,5 @@ pd.set_option('display.max_columns', 100)
 df1.to_excel('bs4FloorLinks.xlsx', index=False, header=True)
 """
 ## TO DO
-# scrape accessories
+
 
